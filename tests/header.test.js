@@ -1,7 +1,3 @@
-jest.setTimeout(30000);
-
-const sessionFactory = require('./factories/sessionFactory');
-const userFactory = require('./factories/userFactory');
 const Page = require('./helpers/page');
 
 let page;
@@ -16,7 +12,7 @@ afterEach(async () => {
 });
 
 test('Header should have correct text', async () => {
-  const text = await page.$eval('a.brand-logo', (el) => el.innerHTML);
+  const text = await page.getContentsOf('a.brand-logo');
   expect(text).toEqual('Blogster');
 });
 
@@ -29,14 +25,7 @@ test('clicking login starts auth flow', async () => {
 });
 
 test('when signed in, show logout button', async () => {
-  const user = await userFactory();
-  const { session, sig } = sessionFactory(user);
-
-  await page.setCookie({ name: 'session', value: session });
-  await page.setCookie({ name: 'session.sig', value: sig });
-  await page.goto('localhost:3000');
-  await page.waitFor('a[href="/auth/logout"]');
-  const text = await page.$eval('a[href="/auth/logout"]', (el) => el.innerHTML);
-
+  await page.login();
+  const text = await page.getContentsOf('a[href="/auth/logout"]');
   expect(text).toEqual('Logout');
 });
