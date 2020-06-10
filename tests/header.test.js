@@ -8,7 +8,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await page.close();
+  // await page.close();
 });
 
 test('Header should have correct text', async () => {

@@ -8,7 +8,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await page.close();
+  // await page.close();
 });
 
 describe('When logged in ', () => {
