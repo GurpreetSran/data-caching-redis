@@ -1,20 +1,18 @@
 jest.setTimeout(30000);
 
-const puppeteer = require('puppeteer');
+const sessionFactory = require('./factories/sessionFactory');
+const userFactory = require('./factories/userFactory');
+const Page = require('./helpers/page');
 
-let browser, page;
+let page;
 
 beforeEach(async () => {
-  browser = await puppeteer.launch({
-    headless: false,
-    args: ['--disable-dev-shm-usage'],
-  });
-  page = await browser.newPage();
+  page = await Page.build();
   await page.goto('localhost:3000');
 });
 
 afterEach(async () => {
-  await browser.close();
+  await page.close();
 });
 
 test('Header should have correct text', async () => {
@@ -31,25 +29,10 @@ test('clicking login starts auth flow', async () => {
 });
 
 test('when signed in, show logout button', async () => {
-  const id = '5ede68fdb734e71ca1af9d5d';
+  const user = await userFactory();
+  const { session, sig } = sessionFactory(user);
 
-  const Buffer = require('safe-buffer').Buffer;
-
-  const sessionObject = {
-    passport: {
-      user: id,
-    },
-  };
-
-  const sessionString = Buffer.from(JSON.stringify(sessionObject)).toString(
-    'base64'
-  );
-  const Keygrip = require('keygrip');
-  const keys = require('../config/keys');
-  const keygrip = new Keygrip([keys.cookieKey]);
-  const sig = keygrip.sign('session=' + sessionString);
-
-  await page.setCookie({ name: 'session', value: sessionString });
+  await page.setCookie({ name: 'session', value: session });
   await page.setCookie({ name: 'session.sig', value: sig });
   await page.goto('localhost:3000');
   await page.waitFor('a[href="/auth/logout"]');
